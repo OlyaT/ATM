@@ -3,13 +3,17 @@ public class ATM {
 
     private double MoneyAmount=0;
     private Card CardInserted;
+    private boolean isCardIn = false;
         
     //Можно задавать количество денег в банкомате 
-    ATM(double moneyInATM){
+    ATM(double moneyInATM) throws NegativeAmount {
          //throw new UnsupportedOperationException("Not yet implemented");
-        MoneyAmount += moneyInATM;
+        if(moneyInATM>=0)
+            MoneyAmount += moneyInATM;
+        else throw new NegativeAmount("You can't set ATM with negative amount");
     }
-
+    
+  
     // Возвращает количество денег в банкомате
     public double getMoneyInATM() {
          //throw new UnsupportedOperationException("Not yet implemented");
@@ -19,28 +23,33 @@ public class ATM {
     //С вызова данного метода начинается работа с картой
     //Метод принимает карту и пин-код, проверяет пин-код карты и не заблокирована ли она
     //Если неправильный пин-код или карточка заблокирована, возвращаем false. При этом, вызов всех последующих методов у ATM с данной картой должен генерировать исключение NoCardInserted
-    public boolean validateCard(Card card, int pinCode){
+    public boolean validateCard(Card card, int pinCode) throws NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");        
         try{
             if(card.isBlocked()||!card.checkPin(pinCode))
+            {
+                isCardIn = false;
                 return false;
+            }
             else
-                CardInserted=card;
+            {
+            CardInserted = card;
+            isCardIn = true;
+            }
+            return true;
         }
-        catch (NullPointerException e){System.err.println("Wrong PIN or card is blocked");}
-        return true;
+        catch (NullPointerException e){throw new NoCardInserted("No card inserted");}
     }
     
     
     //Возвращает сколько денег есть на счету
-    public double checkBalance(){
+    public double checkBalance() throws NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");
         try{
             Account acc = CardInserted.getAccount();
             return acc.getBalance();
         }
-        catch (NullPointerException e){System.err.println("No card Inserted");}
-        return 0;
+        catch (NullPointerException e){throw new NoCardInserted("No card inserted");}
         }        
     
     //Метод для снятия указанной суммы
@@ -49,7 +58,7 @@ public class ATM {
     //Если недостаточно денег на счете, то должно генерироваться исключение NotEnoughMoneyInAccount 
     //Если недостаточно денег в банкомате, то должно генерироваться исключение NotEnoughMoneyInATM 
     //При успешном снятии денег, указанная сумма должна списываться со счета, и в банкомате должно уменьшаться количество денег
-    public double getCash(double amount){
+    public double getCash(double amount) throws NotEnoughMoneyInAccount, NotEnoughMoneyInATM, NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");
         try{
             Account acc = CardInserted.getAccount();
@@ -57,16 +66,15 @@ public class ATM {
                 {
                 if(amount<acc.getBalance())
                     {
-                    MoneyAmount -= acc.withdrow(amount);
-                    return amount;
+                    MoneyAmount -= amount;
+                    return acc.withdrow(amount);
                     }
-                else throw new UnsupportedOperationException("NotEnoughMoneyInAccount");
+                else throw new NotEnoughMoneyInAccount("No enough money in account");
                 }
-            else throw new UnsupportedOperationException("NotEnoughMoneyInATM");
-            }
-        catch (NullPointerException e){System.err.println("There is no card inserted in ATM");}
-        catch (UnsupportedOperationException e){System.err.println(e);}
-        return 0;
+            else throw new NotEnoughMoneyInATM("No enough money in ATM");
+        }
+        catch (NullPointerException e){throw new NoCardInserted("No card inserted");}
     }
+      
 
 }
