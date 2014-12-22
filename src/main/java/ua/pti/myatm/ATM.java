@@ -73,7 +73,7 @@ public class ATM {
         try{
             Account acc = cardInserted.getAccount();
             if (amount<MoneyAmount)
-                {
+                {  
                 if(amount<acc.getBalance())
                     {
                     MoneyAmount -= amount;
