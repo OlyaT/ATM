@@ -152,19 +152,11 @@ public class ATMTest {
         double result = instance.getCash(amount);
     }
     
-        @Test(expected = NoCardInserted.class)
-    public void testGetCashWithNoCardInsertedAndEnoughMoney() throws NoCardInserted, NegativeAmount, NotEnoughMoneyInAccount, NotEnoughMoneyInATM {
+    @Test(expected = NoCardInserted.class)
+    public void testGetCashWithNoCardInsertedAndEnoughMoneyInATM() throws NoCardInserted, NegativeAmount, NotEnoughMoneyInAccount, NotEnoughMoneyInATM {
         System.out.println("Get Cash With Enough Money but with no card insrted");
-        Card mockedcard = mock(Card.class);
-        Account mockedcardacc = mock(Account.class);
-        when(mockedcard.isBlocked()).thenReturn(false);
-        when(mockedcard.checkPin(1234)).thenReturn(false);
-        when(mockedcard.getAccount()).thenReturn(mockedcardacc);
-        when(mockedcardacc.getBalance()).thenReturn(1000.0);
-        when(mockedcardacc.withdrow(100)).thenReturn(100.0);
-        double amount = 100;
         ATM instance = new ATM(2000);
-        instance.validateCard(mockedcard,1234);
+        double amount = 100;        
         double result = instance.getCash(amount);
     }
         
@@ -218,6 +210,89 @@ public class ATMTest {
         boolean result = instance.validateCard(mockedcard,pinCode);
         verify(mockedcard, atLeastOnce()).checkPin(pinCode);
     }
+    
+    
+   @Test
+   public void testValidateCard3Uncorrect() throws NegativeAmount, NoCardInserted{
+           System.out.println("Card has been blocked, because of 3 times wrong PIN inserted");
+           Card mockedcard = mock(Card.class);
+           when(mockedcard.isBlocked()).thenReturn(false);
+           when(mockedcard.checkPin(1234)).thenReturn(false);
+           ATM instance = new ATM(0);
+           boolean result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           verify(mockedcard, atLeastOnce()).block();
+   }
+   
+   @Test
+   public void testValidateCard2Uncorrect() throws NegativeAmount, NoCardInserted{
+           System.out.println("Validate card 2 times uncorrect PIN");
+           Card mockedcard = mock(Card.class);
+           when(mockedcard.isBlocked()).thenReturn(false);
+           when(mockedcard.checkPin(1234)).thenReturn(false);
+           ATM instance = new ATM(0);
+           boolean result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           verify(mockedcard, never()).block();
+   }
+   
+      @Test
+   public void testValidateCard4Uncorrect() throws NegativeAmount, NoCardInserted{
+           System.out.println("Card has been blocked, because of 4 times wrong PIN inserted");
+           Card mockedcard = mock(Card.class);
+           when(mockedcard.isBlocked()).thenReturn(false);
+           when(mockedcard.checkPin(1234)).thenReturn(false);
+           ATM instance = new ATM(0);
+           boolean result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           verify(mockedcard, atLeastOnce()).block();
+   }
+   
+         @Test
+   public void testValidateCard2UncorrectOtherCardUncorrect() throws NegativeAmount, NoCardInserted{
+           System.out.println("Validate card with 2 uncorrect PIN inserted change card, and set uncorrect PIN twice again");
+           Card mockedcard = mock(Card.class);
+           Card newmockedcard = mock(Card.class);
+           when(mockedcard.isBlocked()).thenReturn(false);
+           when(mockedcard.checkPin(1234)).thenReturn(false);
+           when(mockedcard.getID()).thenReturn(1);
+           when(newmockedcard.isBlocked()).thenReturn(false);
+           when(newmockedcard.checkPin(0000)).thenReturn(true);
+           when(mockedcard.getID()).thenReturn(2);
+           ATM instance = new ATM(0);
+           boolean result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(newmockedcard,0000);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           verify(mockedcard, never()).block();
+           verify(newmockedcard, never()).block();
+   }
+     
+         @Test
+   public void testValidateCard2UncorrectOtherBlockedandUncorrectagain() throws NegativeAmount, NoCardInserted{
+           System.out.println("Validate card with 2 uncorrect PIN inserted change card, blocked it, and set uncorrect PIN again");
+           Card mockedcard = mock(Card.class);
+           Card newmockedcard = mock(Card.class);
+           when(mockedcard.isBlocked()).thenReturn(false);
+           when(mockedcard.checkPin(1234)).thenReturn(false);
+           when(mockedcard.getID()).thenReturn(1);
+           when(newmockedcard.isBlocked()).thenReturn(false);
+           when(newmockedcard.checkPin(0000)).thenReturn(false);
+           when(mockedcard.getID()).thenReturn(2);
+           ATM instance = new ATM(0);
+           boolean result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(mockedcard,1234);
+           result = instance.validateCard(newmockedcard,0000);
+           result = instance.validateCard(newmockedcard,0000);
+           result = instance.validateCard(newmockedcard,0000);
+           result = instance.validateCard(mockedcard,1234);
+           verify(mockedcard, never()).block();
+           verify(newmockedcard, atLeastOnce()).block();
+   }
 
 
 }

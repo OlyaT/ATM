@@ -2,8 +2,10 @@ package ua.pti.myatm;
 public class ATM {
 
     private double MoneyAmount=0;
-    private Card CardInserted;
+    private Card cardInserted;
     private boolean isCardIn = false;
+    private int count=0;
+    private int cardId=0;
         
     //Можно задавать количество денег в банкомате 
     ATM(double moneyInATM) throws NegativeAmount {
@@ -26,17 +28,25 @@ public class ATM {
     public boolean validateCard(Card card, int pinCode) throws NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");        
         try{
-            if(card.isBlocked()||!card.checkPin(pinCode))
+            isCardIn = true;            
+            cardInserted = card;
+            
+            if(cardId!=card.getID()){
+                count=0;
+            }
+            
+            if(cardInserted.isBlocked()||!cardInserted.checkPin(pinCode))
             {
-                isCardIn = false;
+                count+=1;
+                if (count>=3){
+                    card.block();
+                }               
                 return false;
             }
             else
             {
-            CardInserted = card;
-            isCardIn = true;
-            }
             return true;
+            }            
         }
         catch (NullPointerException e){throw new NoCardInserted("No card inserted");}
     }
@@ -46,7 +56,7 @@ public class ATM {
     public double checkBalance() throws NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");
         try{
-            Account acc = CardInserted.getAccount();
+            Account acc = cardInserted.getAccount();
             return acc.getBalance();
         }
         catch (NullPointerException e){throw new NoCardInserted("No card inserted");}
@@ -61,7 +71,7 @@ public class ATM {
     public double getCash(double amount) throws NotEnoughMoneyInAccount, NotEnoughMoneyInATM, NoCardInserted{
          //throw new UnsupportedOperationException("Not yet implemented");
         try{
-            Account acc = CardInserted.getAccount();
+            Account acc = cardInserted.getAccount();
             if (amount<MoneyAmount)
                 {
                 if(amount<acc.getBalance())
